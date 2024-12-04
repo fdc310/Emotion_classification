@@ -1,8 +1,7 @@
 import pandas as pd
 import jieba
 import time
-
-
+import csv
 '''
 问题：read_excel将NA解析为空值
 原因：pandas 读取文本的时候会默认（na_values）将如下字符串作为空值处理：
@@ -77,6 +76,11 @@ def cut_word(text):
     return word_lists
 
 
+# 情感计算统计
+c = open('Emotion_features.csv', "a+", newline='', encoding='utf-8-sig')
+writer = csv.writer(c)
+writer.writerow(['Em0tion', 'Word', 'Num'])
+
 
 
 # 情感计算
@@ -142,31 +146,64 @@ def emotion_caculate(text):
     for word in word_set:
         # 统计直接分词后的列表中这个情绪的数量
         freq = word_lists.count(word)
+        tlist = []
         if word in Positive:
             positive += freq
         if word in Negative:
-          negative += freq
+            negative += freq
         if word in Good:
-          good += freq
-          good_lists.append(word)
+            good += freq
+            good_lists.append(word)
+            tlist.append('good')
+            tlist.append(word)
+            tlist.append(freq)
+            writer.writerow(tlist)
         if word in Happy:
-          happy += freq
-          happy_lists.append(word)
+            happy += freq
+            happy_lists.append(word)
+            tlist.append('happy')
+            tlist.append(word)
+            tlist.append(freq)
+            writer.writerow(tlist)
         if word in Sad:
-          sad += freq
-          sad_lists.append(word)
+            sad += freq
+            sad_lists.append(word)
+            tlist.append('sad')
+            tlist.append(word)
+            tlist.append(freq)
+            writer.writerow(tlist)
         if word in Fear:
-          fear += freq
-          fear_lists.append(word)
+            fear += freq
+            fear_lists.append(word)
+            tlist.append('fear')
+            tlist.append(word)
+            tlist.append(freq)
+
+            writer.writerow(tlist)
         if word in Surprise:
-          surprise += freq
-          surprise_lists.append(word)
+            surprise += freq
+            surprise_lists.append(word)
+            tlist.append('surprise')
+            tlist.append(word)
+            tlist.append(freq)
+
+            writer.writerow(tlist)
         if word in Anger:
-          anger += freq
-          anger_lists.append(word)
+            anger += freq
+            anger_lists.append(word)
+            tlist.append('anger')
+            tlist.append(word)
+            tlist.append(freq)
+
+            writer.writerow(tlist)
         if word in Disgust:
             disgust += freq
             disgust_lists.append(word)
+            tlist.append('disgust')
+            tlist.append(word)
+            tlist.append(freq)
+
+            writer.writerow(tlist)
 
     emotion_info = {
         "length": len(word_lists),
@@ -180,6 +217,7 @@ def emotion_caculate(text):
         "anger": anger,
         "disgust": disgust
     }
+    # 添加标头
     indexs = ['length', 'positive', 'negative', 'happy', 'good', 'surprise', 'sad', 'fear', 'anger', 'disgust']
     return pd.Series(emotion_info, index=indexs)
 
@@ -219,5 +257,31 @@ text = '''
 他们难道不知道这东西是怎么来的吗？他们难道不构毒吗？要说狠毒，你这小小的爬龟妇怕是还差得远吧。
 '''
 
-res = emotion_caculate(text)
-print(res)
+# res = emotion_caculate(text)
+# print(res)
+
+# 情感计算
+start_time = time.time()
+emotion_df = dt['cont'].apply(emotion_caculate)
+stop_time = time.time()
+print(stop_time-start_time)
+print(emotion_df.head())
+# 输出结果
+output_df = pd.concat([dt, emotion_df], axis=1)
+# output_df.to_csv('管爷教做菜_em.csv', encoding="utf-8-sig", index=False)
+# print(output_df.head())
+
+# 获取 fear情绪的结果
+fear_cont = output_df.sort_values(by='fear', ascending=False)
+print(fear_cont)
+print(fear_cont.iloc[1:5]['cont'])
+
+# 获取negative情绪的结果
+neg_cont = output_df.sort_values(by='negative',ascending=False)
+print(neg_cont.iloc[1:5]['cont'])
+
+
+c.close()
+
+
+
